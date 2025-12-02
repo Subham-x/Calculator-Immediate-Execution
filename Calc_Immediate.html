@@ -1,0 +1,2317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<!-- 
+- 200+10% = 200.1
+- (50+50)% = NS
+- 100%+50 = 51
+- 2+3*4/2-1 = 7
+- 12.5×(3+4.2)-50%/(7-2)+(-3.5)*8 = 61.9 (59.5 in G calculator)
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Calculator</title>
+    <style>
+        /* @font-face {
+            font-family: 'poppinsRegular';
+            src: url("fonts/poppinsRegular.ttf");
+        }
+        @font-face {
+            font-family: 'nunitoRegular';
+            src: url("fonts/nunitoRegular.ttf");
+        }
+        @font-face {
+            font-family: 'nunitoBold';
+            src: url("fonts/nunitoBold.ttf");
+        } */
+        @font-face {
+            font-family: 'nunitoSemiBold';
+            src: url("fonts/nunitoSemiBold.ttf");
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            /* font-family: 'poppinsRegular'; */
+            /* font-family: 'nunitoRegular'; */
+            font-family: 'nunitoSemiBold';
+            /* font-family: 'nunitoBold'; */
+
+        }
+
+        body {
+            transition: background-color 0.3s;
+            overflow-x: hidden;
+        }
+
+        body.dark {
+            background-color: #1c1c1c;
+        }
+
+        body.light {
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            height: 95vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            overflow: hidden;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px;
+            }
+        }
+
+        .calculator {
+            width: 100%;
+            max-width: 420px;
+            height: 100%;
+            max-height: calc(100vh - 32px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 768px) {
+            .calculator {
+                max-width: 480px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .calculator {
+                max-width: 520px;
+            }
+        }
+
+        /* Ensure calculator fits in short screens */
+        @media (max-height: 600px) {
+            .header {
+                margin-bottom: 8px;
+            }
+
+            .display {
+                min-height: 50px;
+                max-height: 70px;
+            }
+
+            .liveOutput {
+                margin-bottom: 8px;
+            }
+
+            .buttons {
+                gap: 4px;
+                margin-bottom: 8px;
+            }
+
+            button.calc-btn {
+                min-height: 40px;
+                max-height: 100%;
+                border-radius: 999px;
+                font-size: clamp(18px, 7vw, 38px);
+            }
+        }
+
+        /* Very short screens (landscape phones) */
+        @media (max-height: 500px) {
+            .header {
+                margin-bottom: 4px;
+            }
+
+            .display {
+                min-height: 40px;
+                max-height: 50px;
+                margin-bottom: 6px;
+            }
+
+            .display-main {
+                font-size: clamp(20px, 6vw, 32px);
+            }
+
+            .liveOutput {
+                font-size: 11;
+            }
+
+            .buttons {
+                gap: 3px;
+            }
+
+            button.calc-btn {
+                min-height: 35px;
+                max-height: 100%;
+                border-radius: 999px;
+                font-size: clamp(18px, 9vw, 28px);
+            }
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 0 8px;
+            flex-shrink: 0;
+        }
+
+        .header button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            opacity: 0.9;
+            transition: opacity 0.2s, transform 0.1s;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header button:hover {
+            opacity: 1;
+            background-color: rgba(128, 128, 128, 0.1);
+        }
+
+        .header button:active {
+            transform: scale(0.95);
+            opacity: 0.7;
+        }
+
+        .header svg {
+            width: 24px;
+            height: 24px;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        .dark .header svg {
+            fill: white;
+        }
+
+        .light .header svg {
+            fill: black;
+        }
+
+        .light .closeBtnX svg {
+            stroke: black;
+        }
+
+        .dark .closeBtnX svg {
+            stroke: white;
+        }
+
+
+        .theme-dropdown {
+            position: relative;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 40px;
+            min-width: 150px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .dark .dropdown-content {
+            background-color: #333;
+        }
+
+        .light .dropdown-content {
+            background-color: white;
+        }
+
+        .dropdown-content.show {
+            display: block;
+            animation: slideDown 0.2s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 16px;
+        }
+
+        .dark .dropdown-item:hover {
+            background-color: #444;
+        }
+
+        .light .dropdown-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .dropdown-item:active {
+            opacity: 0.7;
+        }
+
+        .dark .dropdown-item {
+            color: white;
+        }
+
+        .light .dropdown-item {
+            color: black;
+        }
+
+        .dropdown-item.active {
+            font-weight: 600;
+        }
+
+        .dark .dropdown-item.active {
+            background-color: #505050;
+        }
+
+        .light .dropdown-item.active {
+            background-color: #e0e0e0;
+        }
+
+        .history-sidebar {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 350px;
+            max-width: 85vw;
+            height: 100vh;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2000;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dark .history-sidebar {
+            background-color: #2c2c2c;
+        }
+
+        .light .history-sidebar {
+            background-color: white;
+        }
+
+        .history-sidebar.open {
+            right: 0;
+        }
+
+        .history-header {
+            padding: 20px;
+            border-bottom: 1px solid;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dark .history-header {
+            border-color: #444;
+            color: white;
+        }
+
+        .light .history-header {
+            border-color: #ddd;
+            color: black;
+        }
+
+        .history-header h2 {
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .history-header button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color 0.2s, transform 0.1s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .history-header button:hover {
+            background-color: rgba(128, 128, 128, 0.2);
+        }
+
+        .history-header button:active {
+            transform: scale(0.9);
+        }
+
+        .history-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .history-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .dark .history-item {
+            background-color: #383838;
+            color: white;
+        }
+
+        .light .history-item {
+            background-color: #f5f5f5;
+            color: black;
+        }
+
+        .dark .history-item:hover {
+            background-color: #444;
+        }
+
+        .light .history-item:hover {
+            background-color: #e8e8e8;
+        }
+
+        .history-item:active {
+            transform: scale(0.98);
+        }
+
+        .history-expression {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+
+        .history-result {
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .history-clear {
+            padding: 12px 20px;
+            border: none;
+            border-top: 1px solid;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .dark .history-clear {
+            background-color: #2c2c2c;
+            border-color: #444;
+            color: #ff5555;
+        }
+
+        .light .history-clear {
+            background-color: white;
+            border-color: #ddd;
+            color: #d32f2f;
+        }
+
+        .dark .history-clear:hover {
+            background-color: #383838;
+        }
+
+        .light .history-clear:hover {
+            background-color: #f5f5f5;
+        }
+
+        .history-clear:active {
+            opacity: 0.7;
+        }
+
+        .no-history {
+            text-align: center;
+            padding: 40px 20px;
+            opacity: 0.5;
+            font-size: 16px;
+        }
+
+        .dark .no-history {
+            color: white;
+        }
+
+        .light .no-history {
+            color: black;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1999;
+            transition: opacity 0.3s;
+        }
+
+        .overlay.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .display {
+            text-align: right;
+            padding: 0 24px;
+            min-height: 80px;
+            max-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            word-wrap: break-word;
+            word-break: break-all;
+            flex-shrink: 0;
+            /* border: 1px dotted red; */
+            margin-top: 2vh;
+        }
+
+        .liveOutput {
+            /* border: 1px dotted red; */
+            color: white;
+            margin-bottom: 16px;
+            margin-right: 24px;
+            text-align: right;
+            font-size: 20px;
+            height: 2em;
+            padding: 2px;
+        }
+
+        /* Steps indicator in header row */
+        .steps-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            transition: opacity 0.2s, transform 0.2s;
+            font-weight: bold;
+        }
+
+        .steps-indicator.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .dark .steps-indicator {
+            background-color: #5a5a5a;
+        }
+
+        .light .steps-indicator {
+            background-color: #d0d0d0;
+        }
+
+        .steps-indicator .step-count {
+            font-size: 13px;
+            font-weight: 500;
+            min-width: 40px;
+            text-align: center;
+        }
+        .dark .steps-indicator .step-count {
+            color: #8daad0;
+        }
+        .light .steps-indicator .step-count {
+            color: #526492;
+        }
+
+        .steps-indicator .nav-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.1s, opacity 0.2s;
+            opacity: 0.7;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .steps-indicator .nav-btn:hover {
+            opacity: 1;
+            background-color: rgba(128, 128, 128, 0.2);
+        }
+
+        .steps-indicator .nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        .steps-indicator .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .dark .steps-indicator .nav-btn {
+            color: white;
+        }
+
+        .light .steps-indicator .nav-btn {
+            color: black;
+        }
+
+        @media (max-width: 480px) {
+            .display {
+                min-height: 60px;
+                max-height: 80px;
+                padding: 0 16px;
+            }
+
+            .liveOutput {
+                margin-bottom: 12px;
+
+            }
+        }
+
+        .display-main {
+            font-size: clamp(32px, 8vw, 56px);
+            font-weight: 300;
+            line-height: 1.1;
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 480px) {
+            .display-main {
+                font-size: clamp(28px, 9vw, 40px);
+            }
+
+            .liveOutput {
+                font-size: 15;
+            }
+        }
+
+        .dark .display-main {
+            color: white;
+        }
+
+        .light .display-main {
+            color: black;
+        }
+
+        .dark .liveOutput {
+            color: #ddb3d0;
+        }
+
+        .light .liveOutput {
+            color: #6a4b6b;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 8px;
+            padding: 0 16px;
+            margin-bottom: 16px;
+            margin-top: 8vh;
+            flex: 1;
+            min-height: 0;
+        }
+
+        @media (max-width: 480px) {
+            .buttons {
+                gap: 6px;
+                padding: 0 12px;
+            }
+        }
+
+        button.calc-btn {
+            min-height: 50px;
+            /* max-height: 80px; */
+            height: 100%;
+            border-radius: 999px;
+            /* border-radius: 25px; */
+            border: none;
+            font-size: clamp(20px, 2vw, 32px);
+            font-weight: 300;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.1s, box-shadow 0.2s, border-radius 0.4s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        button.calc-btn:active {
+            transform: scale(0.95);
+        }
+
+        @media (max-width: 480px) {
+            button.calc-btn {
+                min-height: 45px;
+                max-height: 100%;
+                font-size: clamp(18px, 9vw, 28px);
+                border-radius: 999px;
+            }
+        }
+
+        button.calc-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+
+
+        button.calc-btn:active {
+            transform: scale(0.8);
+            opacity: 0.8;
+            border-radius: 20px;
+        }
+
+        /* Interactive scale effect for touch devices */
+        @media (hover: none) and (pointer: coarse) {
+            button.calc-btn:active {
+                transform: scale(0.8);
+            }
+        }
+
+        .dark .btn-number {
+            background-color: #505050;
+            color: white;
+        }
+
+        .dark .btn-number:hover {
+            background-color: #5a5a5a;
+        }
+
+        .dark .btn-operator {
+            background-color: #919191;
+            color: #1c1c1c;
+        }
+
+        .dark .btn-operator:hover {
+            background-color: #a0a0a0;
+        }
+
+        .dark .btn-function {
+            background-color: #6b6b6b;
+            color: white;
+        }
+
+        .dark .btn-function:hover {
+            background-color: #757575;
+        }
+
+        .dark .btn-ac {
+            background-color: #7d9cc5;
+            color: #1c1c1c;
+        }
+
+        .dark .btn-ac:hover {
+            background-color: #8daad0;
+        }
+
+        .dark .btn-equals {
+            background-color: #d4a5c5;
+            color: #1c1c1c;
+        }
+
+        .dark .btn-equals:hover {
+            background-color: #ddb3d0;
+        }
+
+        .dark .btn-backspace {
+            background-color: #5d4045;
+            color: white;
+        }
+
+        .dark .btn-backspace:hover {
+            background-color: #714b51;
+        }
+
+        .light .btn-number {
+            background-color: #e0e0e0;
+            color: black;
+        }
+
+        .light .btn-number:hover {
+            background-color: #d0d0d0;
+        }
+
+        .light .btn-operator {
+            background-color: #6d7487;
+            color: white;
+        }
+
+        .light .btn-operator:hover {
+            background-color: #77819d;
+        }
+
+        .light .btn-function {
+            background-color: #d4d4d4;
+            color: black;
+        }
+
+        .light .btn-function:hover {
+            background-color: #c4c4c4;
+        }
+
+        .light .btn-ac {
+            background-color: #5e73aa;
+            color: white;
+        }
+
+        .light .btn-ac:hover {
+            background-color: #526492;
+        }
+
+        .light .btn-equals {
+            background-color: #543a55;
+            color: white;
+        }
+
+        .light .btn-equals:hover {
+            background-color: #6a4b6b;
+        }
+
+        .light .btn-backspace {
+            background-color: #cd6171;
+            color: white;
+        }
+
+        .light .btn-backspace:hover {
+            background-color: #a2505c;
+        }
+
+        @media (max-width: 480px) {
+            button.calc-btn:hover {
+                transform: none;
+                box-shadow: none;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .calculator {
+                padding: 20px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            button.calc-btn:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+            .dark .btn-number:hover {
+                background-color: #505050;
+            }
+
+            .dark .btn-operator:hover {
+                background-color: #919191;
+            }
+
+            .dark .btn-function:hover {
+                background-color: #6b6b6b;
+            }
+
+            .dark .btn-ac:hover {
+                background-color: #7d9cc5;
+            }
+
+            .dark .btn-equals:hover {
+                background-color: #d4a5c5;
+            }
+
+            .light .btn-number:hover {
+                background-color: #e0e0e0;
+            }
+
+            .light .btn-operator:hover {
+                background-color: #f5923e;
+            }
+
+            .light .btn-function:hover {
+                background-color: #d4d4d4;
+            }
+
+            .light .btn-ac:hover {
+                background-color: #d4d4d4;
+            }
+
+            .light .btn-equals:hover {
+                background-color: #f5923e;
+            }
+
+            .dark .btn-backspace:hover {
+                background-color: #8b5a3c;
+            }
+
+            .light .btn-backspace:hover {
+                background-color: #d4a574;
+            }
+        }
+    </style>
+</head>
+
+<body class="dark">
+    <div class="overlay" id="overlay" onclick="closeHistory()"></div>
+
+    <div class="history-sidebar" id="historySidebar">
+        <div class="history-header">
+            <h2>History</h2>
+            <button onclick="closeHistory()" class="closeBtnX">
+                <svg width="24" height="24" fill="none" stroke="none" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="history-content" id="historyContent">
+            <div class="no-history">No history yet</div>
+        </div>
+        <button class="history-clear" onclick="clearHistory()">Clear History</button>
+    </div>
+
+    <div class="container">
+        <div class="calculator">
+            <div class="header">
+                <button onclick="toggleHistory()" title="History">
+                    <svg height="24px" viewBox="0 -960 960 960" width="24px" fill="none">
+                        <path
+                            d="M480-120q-126 0-223-76.5T131-392q-4-15 6-27.5t27-14.5q16-2 29 6t18 24q24 90 99 147t170 57q117 0 198.5-81.5T760-480q0-117-81.5-198.5T480-760q-69 0-129 32t-101 88h70q17 0 28.5 11.5T360-600q0 17-11.5 28.5T320-560H160q-17 0-28.5-11.5T120-600v-160q0-17 11.5-28.5T160-800q17 0 28.5 11.5T200-760v54q51-64 124.5-99T480-840q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-480q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-120Zm40-376 100 100q11 11 11 28t-11 28q-11 11-28 11t-28-11L452-452q-6-6-9-13.5t-3-15.5v-159q0-17 11.5-28.5T480-680q17 0 28.5 11.5T520-640v144Z" />
+                    </svg>
+                </button>
+                
+                <div class="steps-indicator">
+                    <button class="nav-btn" id="prevStepBtn" onclick="navigateStep(-1)" disabled>&lt;</button>
+                    <span class="step-count" id="stepCount">0/0</span>
+                    <button class="nav-btn" id="nextStepBtn" onclick="navigateStep(1)" disabled>&gt;</button>
+                </div>
+                
+                <div class="theme-dropdown">
+                    <button onclick="toggleDropdown()" title="Theme">
+                        <!-- <svg fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="1" />
+                            <circle cx="12" cy="5" r="1" />
+                            <circle cx="12" cy="19" r="1" />
+                        </svg> -->
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                            fill="none">
+                            <path
+                                d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z" />
+                        </svg>
+                    </button>
+                    <div class="dropdown-content" id="themeDropdown">
+                        <div class="dropdown-item" onclick="setTheme('system')">
+                            <span id="systemCheck">✓ </span>System
+                        </div>
+                        <div class="dropdown-item" onclick="setTheme('light')">
+                            <span id="lightCheck"></span>Light
+                        </div>
+                        <div class="dropdown-item" onclick="setTheme('dark')">
+                            <span id="darkCheck"></span>Dark
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="display">
+                <div class="display-main" id="display">0</div>
+            </div>
+            <div class="liveOutput" id="liveOutput"></div>
+
+            <div class="buttons">
+                <button class="calc-btn btn-ac" onclick="clearAll()">AC</button>
+                <button class="calc-btn btn-function" onclick="addSquareRoot()">√</button>
+                <button class="calc-btn btn-function" onclick="addPercent()">%</button>
+                <button class="calc-btn btn-operator" onclick="addOperator('÷')">÷</button>
+
+                <button class="calc-btn btn-number" onclick="addNumber('7')">7</button>
+                <button class="calc-btn btn-number" onclick="addNumber('8')">8</button>
+                <button class="calc-btn btn-number" onclick="addNumber('9')">9</button>
+                <button class="calc-btn btn-operator" onclick="addOperator('×')">×</button>
+
+                <button class="calc-btn btn-number" onclick="addNumber('4')">4</button>
+                <button class="calc-btn btn-number" onclick="addNumber('5')">5</button>
+                <button class="calc-btn btn-number" onclick="addNumber('6')">6</button>
+                <button class="calc-btn btn-operator" onclick="addOperator('-')">−</button>
+
+                <button class="calc-btn btn-number" onclick="addNumber('1')">1</button>
+                <button class="calc-btn btn-number" onclick="addNumber('2')">2</button>
+                <button class="calc-btn btn-number" onclick="addNumber('3')">3</button>
+                <button class="calc-btn btn-operator" onclick="addOperator('+')">+</button>
+
+                <button class="calc-btn btn-number" onclick="addNumber('0')">0</button>
+                <button class="calc-btn btn-number" onclick="addDecimal()">.</button>
+                <button class="calc-btn btn-backspace" onclick="backspace()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" />
+                        <line x1="18" y1="9" x2="12" y2="15" />
+                        <line x1="12" y1="9" x2="18" y2="15" />
+                    </svg>
+                </button>
+                <button class="calc-btn btn-equals" onclick="calculate()">=</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ==============================================
+         * IMMEDIATE EXECUTION CALCULATOR (Shop Calculator)
+         * ==============================================
+         * 
+         * This calculator uses IMMEDIATE EXECUTION logic:
+         * - Left-to-right evaluation (NO operator precedence)
+         * - 2 + 3 × 4 = 20 (not 14 like algebraic calculators)
+         * - Operations are applied immediately when next operator is pressed
+         * - Percent calculates as percentage of running total
+         *   Example: 100 + 10% = 110 (10% of 100 = 10, so 100 + 10 = 110)
+         * 
+         * Perfect for business/retail calculations where immediate
+         * feedback and simple left-to-right logic is preferred.
+         * ==============================================
+         */
+
+        // ============================================
+        // STATE VARIABLES
+        // ============================================
+        
+        // The running accumulated result (string-based for precision)
+        let accumulator = '0';
+        
+        // String representation of accumulator for display
+        let accumulatorStr = '0';
+        
+        // The number currently being entered
+        let currentOperand = '';
+        
+        // The pending operator to apply (null if none)
+        let pendingOperator = null;
+        
+        // Flag to track if we should start fresh on next digit
+        let startNewOperand = true;
+        
+        // Flag to track if last action was equals (for chaining)
+        let lastEqualsPressed = false;
+        
+        // Store last operation for repeat equals (string-based)
+        let lastOperator = null;
+        let lastOperand = '0';
+        let lastOperandStr = '0';
+        
+        // Expression string for display/history
+        let expressionHistory = '';
+        
+        // Theme preference
+        let themePreference = 'system';
+        
+        // ============================================
+        // STEP TRACKING VARIABLES
+        // ============================================
+        
+        // Array to store all calculation steps
+        let calculationSteps = [];
+        
+        // Current step index being viewed
+        let currentStepIndex = -1;
+        
+        // Flag to track if we're viewing history vs live
+        let viewingHistory = false;
+
+        // ============================================
+        // DECIMAL ARITHMETIC ENGINE (Professional Grade)
+        // ============================================
+        // This implements string-based decimal arithmetic
+        // to completely avoid JavaScript floating-point errors
+        
+        /**
+         * Decimal class for precise arithmetic
+         * Stores numbers as string to avoid floating-point issues
+         */
+        class Decimal {
+            constructor(value) {
+                if (value instanceof Decimal) {
+                    this.value = value.value;
+                    return;
+                }
+                
+                // Convert to string and clean
+                let str = String(value).replace(/,/g, '').trim();
+                
+                // Handle empty or invalid
+                if (!str || str === '' || str === '-') {
+                    this.value = '0';
+                    return;
+                }
+                
+                // Validate number format
+                if (!/^-?\d*\.?\d*$/.test(str) || str === '.' || str === '-.') {
+                    this.value = '0';
+                    return;
+                }
+                
+                // Normalize: remove leading zeros (except for "0.xxx")
+                const isNegative = str.startsWith('-');
+                if (isNegative) str = str.substring(1);
+                
+                // Split into integer and decimal parts
+                let [intPart, decPart] = str.split('.');
+                intPart = intPart || '0';
+                
+                // Remove leading zeros from integer part
+                intPart = intPart.replace(/^0+/, '') || '0';
+                
+                // Reconstruct
+                if (decPart !== undefined) {
+                    // Remove trailing zeros from decimal part
+                    decPart = decPart.replace(/0+$/, '');
+                    this.value = decPart ? `${intPart}.${decPart}` : intPart;
+                } else {
+                    this.value = intPart;
+                }
+                
+                if (isNegative && this.value !== '0') {
+                    this.value = '-' + this.value;
+                }
+            }
+            
+            // Check if negative
+            isNegative() {
+                return this.value.startsWith('-');
+            }
+            
+            // Get absolute value
+            abs() {
+                return new Decimal(this.value.replace('-', ''));
+            }
+            
+            // Get parts: { negative, integer, decimal }
+            getParts() {
+                let str = this.value;
+                const negative = str.startsWith('-');
+                if (negative) str = str.substring(1);
+                
+                const [intPart, decPart] = str.split('.');
+                return {
+                    negative,
+                    integer: intPart || '0',
+                    decimal: decPart || ''
+                };
+            }
+            
+            // Compare absolute values: -1 if |a| < |b|, 0 if equal, 1 if |a| > |b|
+            static compareAbs(a, b) {
+                const pa = a.abs().getParts();
+                const pb = b.abs().getParts();
+                
+                // Compare integer parts by length first
+                if (pa.integer.length !== pb.integer.length) {
+                    return pa.integer.length > pb.integer.length ? 1 : -1;
+                }
+                
+                // Same length, compare digit by digit
+                if (pa.integer !== pb.integer) {
+                    return pa.integer > pb.integer ? 1 : -1;
+                }
+                
+                // Integer parts equal, compare decimal parts
+                const maxDecLen = Math.max(pa.decimal.length, pb.decimal.length);
+                const decA = pa.decimal.padEnd(maxDecLen, '0');
+                const decB = pb.decimal.padEnd(maxDecLen, '0');
+                
+                if (decA === decB) return 0;
+                return decA > decB ? 1 : -1;
+            }
+            
+            // Add two positive decimal strings
+            static addPositive(a, b) {
+                const pa = a.getParts();
+                const pb = b.getParts();
+                
+                // Align decimal places
+                const maxDecLen = Math.max(pa.decimal.length, pb.decimal.length);
+                const decA = pa.decimal.padEnd(maxDecLen, '0');
+                const decB = pb.decimal.padEnd(maxDecLen, '0');
+                
+                // Combine as integers (remove decimal point)
+                const numA = pa.integer + decA;
+                const numB = pb.integer + decB;
+                
+                // Add as strings
+                let result = '';
+                let carry = 0;
+                const maxLen = Math.max(numA.length, numB.length);
+                const paddedA = numA.padStart(maxLen, '0');
+                const paddedB = numB.padStart(maxLen, '0');
+                
+                for (let i = maxLen - 1; i >= 0; i--) {
+                    const sum = parseInt(paddedA[i]) + parseInt(paddedB[i]) + carry;
+                    result = (sum % 10) + result;
+                    carry = Math.floor(sum / 10);
+                }
+                
+                if (carry > 0) {
+                    result = carry + result;
+                }
+                
+                // Reinsert decimal point
+                if (maxDecLen > 0) {
+                    const intLen = result.length - maxDecLen;
+                    const intPart = result.substring(0, intLen) || '0';
+                    const decPart = result.substring(intLen);
+                    return new Decimal(intPart + '.' + decPart);
+                }
+                
+                return new Decimal(result);
+            }
+            
+            // Subtract two positive decimals (a - b), assumes a >= b
+            static subtractPositive(a, b) {
+                const pa = a.getParts();
+                const pb = b.getParts();
+                
+                // Align decimal places
+                const maxDecLen = Math.max(pa.decimal.length, pb.decimal.length);
+                const decA = pa.decimal.padEnd(maxDecLen, '0');
+                const decB = pb.decimal.padEnd(maxDecLen, '0');
+                
+                // Combine as integers
+                const numA = pa.integer + decA;
+                const numB = pb.integer + decB;
+                
+                // Subtract as strings
+                let result = '';
+                let borrow = 0;
+                const maxLen = Math.max(numA.length, numB.length);
+                const paddedA = numA.padStart(maxLen, '0');
+                const paddedB = numB.padStart(maxLen, '0');
+                
+                for (let i = maxLen - 1; i >= 0; i--) {
+                    let diff = parseInt(paddedA[i]) - parseInt(paddedB[i]) - borrow;
+                    if (diff < 0) {
+                        diff += 10;
+                        borrow = 1;
+                    } else {
+                        borrow = 0;
+                    }
+                    result = diff + result;
+                }
+                
+                // Reinsert decimal point
+                if (maxDecLen > 0) {
+                    const intLen = result.length - maxDecLen;
+                    const intPart = result.substring(0, intLen) || '0';
+                    const decPart = result.substring(intLen);
+                    return new Decimal(intPart + '.' + decPart);
+                }
+                
+                return new Decimal(result);
+            }
+            
+            // Add
+            add(other) {
+                other = new Decimal(other);
+                
+                const aNeg = this.isNegative();
+                const bNeg = other.isNegative();
+                
+                if (!aNeg && !bNeg) {
+                    // Both positive
+                    return Decimal.addPositive(this, other);
+                } else if (aNeg && bNeg) {
+                    // Both negative: -(|a| + |b|)
+                    const sum = Decimal.addPositive(this.abs(), other.abs());
+                    return new Decimal('-' + sum.value);
+                } else if (aNeg) {
+                    // a negative, b positive: b - |a|
+                    const cmp = Decimal.compareAbs(this, other);
+                    if (cmp === 0) return new Decimal('0');
+                    if (cmp < 0) {
+                        return Decimal.subtractPositive(other, this.abs());
+                    } else {
+                        const diff = Decimal.subtractPositive(this.abs(), other);
+                        return new Decimal('-' + diff.value);
+                    }
+                } else {
+                    // a positive, b negative: a - |b|
+                    const cmp = Decimal.compareAbs(this, other);
+                    if (cmp === 0) return new Decimal('0');
+                    if (cmp >= 0) {
+                        return Decimal.subtractPositive(this, other.abs());
+                    } else {
+                        const diff = Decimal.subtractPositive(other.abs(), this);
+                        return new Decimal('-' + diff.value);
+                    }
+                }
+            }
+            
+            // Subtract
+            subtract(other) {
+                other = new Decimal(other);
+                // a - b = a + (-b)
+                const negB = other.isNegative() 
+                    ? new Decimal(other.value.substring(1))
+                    : new Decimal('-' + other.value);
+                return this.add(negB);
+            }
+            
+            // Multiply
+            multiply(other) {
+                other = new Decimal(other);
+                
+                const pa = this.abs().getParts();
+                const pb = other.abs().getParts();
+                
+                // Total decimal places in result
+                const totalDecPlaces = pa.decimal.length + pb.decimal.length;
+                
+                // Convert to integers (remove decimal points)
+                const numA = pa.integer + pa.decimal;
+                const numB = pb.integer + pb.decimal;
+                
+                // Multiply as integers using grade-school algorithm
+                const result = new Array(numA.length + numB.length).fill(0);
+                
+                for (let i = numA.length - 1; i >= 0; i--) {
+                    for (let j = numB.length - 1; j >= 0; j--) {
+                        const mul = parseInt(numA[i]) * parseInt(numB[j]);
+                        const p1 = i + j, p2 = i + j + 1;
+                        const sum = mul + result[p2];
+                        
+                        result[p2] = sum % 10;
+                        result[p1] += Math.floor(sum / 10);
+                    }
+                }
+                
+                // Convert to string
+                let strResult = result.join('').replace(/^0+/, '') || '0';
+                
+                // Insert decimal point
+                if (totalDecPlaces > 0) {
+                    // Pad with zeros if needed
+                    while (strResult.length <= totalDecPlaces) {
+                        strResult = '0' + strResult;
+                    }
+                    const intLen = strResult.length - totalDecPlaces;
+                    strResult = strResult.substring(0, intLen) + '.' + strResult.substring(intLen);
+                }
+                
+                // Handle sign
+                const resultNegative = this.isNegative() !== other.isNegative();
+                if (resultNegative && strResult !== '0') {
+                    strResult = '-' + strResult;
+                }
+                
+                return new Decimal(strResult);
+            }
+            
+            // Divide with precision
+            divide(other, precision = 12) {
+                other = new Decimal(other);
+                
+                // Check for division by zero
+                if (other.value === '0') {
+                    return { error: 'Cannot divide by zero', value: null };
+                }
+                
+                const pa = this.abs().getParts();
+                const pb = other.abs().getParts();
+                
+                // Align decimal places
+                const maxDec = Math.max(pa.decimal.length, pb.decimal.length);
+                let dividend = pa.integer + pa.decimal.padEnd(maxDec, '0');
+                let divisor = pb.integer + pb.decimal.padEnd(maxDec, '0');
+                
+                // Remove leading zeros
+                dividend = dividend.replace(/^0+/, '') || '0';
+                divisor = divisor.replace(/^0+/, '') || '0';
+                
+                // Long division
+                let quotient = '';
+                let remainder = '';
+                let decimalAdded = false;
+                let decimalPos = 0;
+                
+                // Process digit by digit
+                for (let i = 0; i < dividend.length + precision + 1; i++) {
+                    if (i < dividend.length) {
+                        remainder += dividend[i];
+                    } else {
+                        if (!decimalAdded) {
+                            if (quotient === '') quotient = '0';
+                            quotient += '.';
+                            decimalAdded = true;
+                        }
+                        remainder += '0';
+                        decimalPos++;
+                        if (decimalPos > precision) break;
+                    }
+                    
+                    remainder = remainder.replace(/^0+/, '') || '0';
+                    
+                    // Find how many times divisor goes into remainder
+                    let count = 0;
+                    while (Decimal.compareAbs(new Decimal(remainder), new Decimal(divisor)) >= 0) {
+                        remainder = Decimal.subtractPositive(
+                            new Decimal(remainder), 
+                            new Decimal(divisor)
+                        ).value;
+                        count++;
+                    }
+                    
+                    quotient += count;
+                }
+                
+                // Handle sign
+                const resultNegative = this.isNegative() !== other.isNegative();
+                let result = new Decimal(quotient);
+                if (resultNegative && result.value !== '0') {
+                    result = new Decimal('-' + result.value);
+                }
+                
+                return { error: null, value: result };
+            }
+            
+            // Convert to display string
+            toString() {
+                return this.value;
+            }
+            
+            // Convert to number (only for comparisons, not calculations)
+            toNumber() {
+                return parseFloat(this.value);
+            }
+        }
+
+        // ============================================
+        // DISPLAY FORMATTING
+        // ============================================
+        
+        /**
+         * Format decimal string for display
+         * Limits decimal places and removes trailing zeros
+         */
+        function formatForDisplay(value, maxDecimals = 10) {
+            if (value instanceof Decimal) {
+                value = value.toString();
+            }
+            
+            let str = String(value);
+            
+            // Handle error strings
+            if (str === 'Error' || str === 'Infinity' || str === '-Infinity' || str === 'NaN') {
+                return 'Error';
+            }
+            
+            // Handle very large numbers (scientific notation)
+            const num = parseFloat(str);
+            if (Math.abs(num) > 999999999999) {
+                return num.toExponential(6);
+            }
+            
+            // Limit decimal places
+            if (str.includes('.')) {
+                const [intPart, decPart] = str.split('.');
+                if (decPart.length > maxDecimals) {
+                    // Round the last digit
+                    const truncated = decPart.substring(0, maxDecimals);
+                    const nextDigit = parseInt(decPart[maxDecimals]) || 0;
+                    
+                    if (nextDigit >= 5) {
+                        // Need to round up
+                        let rounded = (BigInt(intPart + truncated) + 1n).toString();
+                        const newIntLen = rounded.length - maxDecimals;
+                        const newInt = rounded.substring(0, newIntLen) || '0';
+                        const newDec = rounded.substring(newIntLen).replace(/0+$/, '');
+                        str = newDec ? `${newInt}.${newDec}` : newInt;
+                    } else {
+                        const trimmedDec = truncated.replace(/0+$/, '');
+                        str = trimmedDec ? `${intPart}.${trimmedDec}` : intPart;
+                    }
+                } else {
+                    // Just remove trailing zeros
+                    const trimmedDec = decPart.replace(/0+$/, '');
+                    str = trimmedDec ? `${intPart}.${trimmedDec}` : intPart;
+                }
+            }
+            
+            return str;
+        }
+
+        /**
+         * Add Indian-style comma formatting (lakhs and crores system)
+         * Indian system: 1,000 | 10,000 | 1,00,000 | 10,00,000 | 1,00,00,000
+         */
+        function addIndianCommas(numStr) {
+            if (!numStr || numStr === 'Error') return numStr;
+            
+            // Convert to string and remove any existing commas
+            numStr = String(numStr).replace(/,/g, '');
+            
+            // Check if there's an operator suffix (like "505 +")
+            // Extract just the number part
+            const operatorMatch = numStr.match(/^(-?\d*\.?\d*)\s*([+\-×÷*/])?$/);
+            let operatorSuffix = '';
+            if (operatorMatch) {
+                numStr = operatorMatch[1];
+                operatorSuffix = operatorMatch[2] ? ' ' + operatorMatch[2] : '';
+            }
+            
+            // Handle negative numbers
+            let isNegative = false;
+            if (numStr.startsWith('-')) {
+                isNegative = true;
+                numStr = numStr.substring(1);
+            }
+            
+            // Split integer and decimal parts
+            const dotIndex = numStr.indexOf('.');
+            let integerPart, decimalPart;
+            
+            if (dotIndex !== -1) {
+                integerPart = numStr.substring(0, dotIndex);
+                decimalPart = numStr.substring(dotIndex);
+            } else {
+                integerPart = numStr;
+                decimalPart = '';
+            }
+            
+            // Clean up integer part - remove any non-digit characters
+            integerPart = integerPart.replace(/\D/g, '');
+            
+            // Don't add commas if less than 4 digits
+            if (integerPart.length < 4) {
+                return (isNegative ? '-' : '') + integerPart + decimalPart + operatorSuffix;
+            }
+            
+            // Get last 3 digits
+            const lastThree = integerPart.slice(-3);
+            const remaining = integerPart.slice(0, -3);
+            
+            if (remaining.length === 0) {
+                return (isNegative ? '-' : '') + lastThree + decimalPart + operatorSuffix;
+            }
+            
+            // Add commas every 2 digits from right in remaining part
+            let formattedRemaining = '';
+            for (let i = remaining.length - 1; i >= 0; i--) {
+                formattedRemaining = remaining[i] + formattedRemaining;
+                const posFromRight = remaining.length - i;
+                if (posFromRight % 2 === 0 && i > 0) {
+                    formattedRemaining = ',' + formattedRemaining;
+                }
+            }
+            
+            return (isNegative ? '-' : '') + formattedRemaining + ',' + lastThree + decimalPart + operatorSuffix;
+        }
+
+        // ============================================
+        // CORE CALCULATION ENGINE
+        // ============================================
+        
+        /**
+         * Apply an operation between two decimal values
+         * Uses the Decimal class for exact arithmetic
+         */
+        function applyOperation(left, operator, right) {
+            const a = new Decimal(left);
+            const b = new Decimal(right);
+            
+            let result;
+            
+            switch (operator) {
+                case '+':
+                    result = a.add(b);
+                    break;
+                case '-':
+                    result = a.subtract(b);
+                    break;
+                case '×':
+                case '*':
+                    result = a.multiply(b);
+                    break;
+                case '÷':
+                case '/':
+                    const divResult = a.divide(b);
+                    if (divResult.error) {
+                        return { error: divResult.error, value: 'Error' };
+                    }
+                    result = divResult.value;
+                    break;
+                default:
+                    result = b;
+            }
+            
+            return { error: null, value: result.toString() };
+        }
+
+        /**
+         * Execute the pending operation (if any)
+         */
+        function executePendingOperation() {
+            if (pendingOperator === null) {
+                accumulator = currentOperand || '0';
+                accumulatorStr = accumulator;
+                return { error: null };
+            }
+            
+            const result = applyOperation(accumulator, pendingOperator, currentOperand || '0');
+            
+            if (result.error) {
+                return result;
+            }
+            
+            accumulator = result.value;
+            accumulatorStr = formatForDisplay(accumulator);
+            return { error: null };
+        }
+
+        // ============================================
+        // THEME FUNCTIONS
+        // ============================================
+        
+        function initTheme() {
+            const saved = localStorage.getItem('calcTheme');
+            themePreference = saved || 'system';
+            applyTheme();
+            updateThemeChecks();
+        }
+
+        function applyTheme() {
+            const body = document.body;
+
+            if (themePreference === 'system') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                body.className = prefersDark ? 'dark' : 'light';
+            } else {
+                body.className = themePreference;
+            }
+        }
+
+        function setTheme(theme) {
+            themePreference = theme;
+            localStorage.setItem('calcTheme', theme);
+            applyTheme();
+            updateThemeChecks();
+            toggleDropdown();
+        }
+
+        function updateThemeChecks() {
+            document.getElementById('systemCheck').textContent = themePreference === 'system' ? '✓ ' : '';
+            document.getElementById('lightCheck').textContent = themePreference === 'light' ? '✓ ' : '';
+            document.getElementById('darkCheck').textContent = themePreference === 'dark' ? '✓ ' : '';
+        }
+
+        function toggleDropdown() {
+            const dropdown = document.getElementById('themeDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        document.addEventListener('click', function (event) {
+            const dropdown = document.getElementById('themeDropdown');
+            const themeBtn = event.target.closest('.theme-dropdown');
+
+            if (!themeBtn && dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+            if (themePreference === 'system') {
+                applyTheme();
+            }
+        });
+
+        // ============================================
+        // HISTORY FUNCTIONS
+        // ============================================
+        
+        function saveToHistory(expression, result) {
+            let history = JSON.parse(localStorage.getItem('calcHistory') || '[]');
+            history.unshift({
+                expression: expression,
+                result: result,
+                timestamp: Date.now()
+            });
+
+            if (history.length > 50) {
+                history = history.slice(0, 50);
+            }
+
+            localStorage.setItem('calcHistory', JSON.stringify(history));
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('calcHistory') || '[]');
+            const content = document.getElementById('historyContent');
+
+            if (history.length === 0) {
+                content.innerHTML = '<div class="no-history">No history yet</div>';
+                return;
+            }
+
+            content.innerHTML = history.map(item => {
+                const escapedResult = String(item.result).replace(/'/g, "\\'");
+                const escapedExpression = escapeHtml(item.expression);
+                const escapedResultDisplay = escapeHtml(String(item.result));
+                return '<div class="history-item" onclick="useHistoryItem(\'' + escapedResult + '\')">' +
+                    '<div class="history-expression">' + escapedExpression + '</div>' +
+                    '<div class="history-result">= ' + escapedResultDisplay + '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function useHistoryItem(result) {
+            clearAll();
+            currentOperand = result;
+            accumulator = parseFloat(result) || 0;
+            startNewOperand = true;
+            lastEqualsPressed = true;
+            updateDisplay(result);
+            closeHistory();
+        }
+
+        function clearHistory() {
+            if (confirm('Clear all history?')) {
+                localStorage.setItem('calcHistory', '[]');
+                loadHistory();
+            }
+        }
+
+        function toggleHistory() {
+            const sidebar = document.getElementById('historySidebar');
+            const overlay = document.getElementById('overlay');
+
+            sidebar.classList.add('open');
+            overlay.classList.add('show');
+            loadHistory();
+        }
+
+        function closeHistory() {
+            const sidebar = document.getElementById('historySidebar');
+            const overlay = document.getElementById('overlay');
+
+            sidebar.classList.remove('open');
+            overlay.classList.remove('show');
+        }
+
+        // ============================================
+        // DISPLAY FUNCTIONS
+        // ============================================
+        
+        function updateDisplay(value) {
+            const display = document.getElementById('display');
+            const formattedValue = addIndianCommas(value || '0');
+            display.textContent = formattedValue;
+        }
+
+        // ============================================
+        // STEP TRACKING FUNCTIONS
+        // ============================================
+        
+        /**
+         * Add a calculation step to the history
+         */
+        function addCalculationStep(expression, result) {
+            calculationSteps.push({
+                expression: expression,
+                result: result,
+                timestamp: Date.now()
+            });
+            currentStepIndex = calculationSteps.length - 1;
+            viewingHistory = false;
+            updateStepIndicator();
+        }
+        
+        /**
+         * Update the step indicator display
+         */
+        function updateStepIndicator() {
+            const stepCountEl = document.getElementById('stepCount');
+            const prevBtn = document.getElementById('prevStepBtn');
+            const nextBtn = document.getElementById('nextStepBtn');
+            const stepsIndicator = document.querySelector('.steps-indicator');
+            
+            const totalSteps = calculationSteps.length;
+            
+            if (totalSteps === 0) {
+                stepCountEl.textContent = '0/0';
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+                stepsIndicator.classList.add('hidden');
+            } else {
+                const displayIndex = currentStepIndex + 1;
+                stepCountEl.textContent = displayIndex + '/' + totalSteps;
+                prevBtn.disabled = currentStepIndex <= 0;
+                nextBtn.disabled = currentStepIndex >= totalSteps - 1;
+                stepsIndicator.classList.remove('hidden');
+            }
+        }
+        
+        /**
+         * Navigate through calculation steps
+         * @param {number} direction - -1 for previous, 1 for next
+         */
+        function navigateStep(direction) {
+            if (calculationSteps.length === 0) return;
+            
+            const newIndex = currentStepIndex + direction;
+            
+            if (newIndex >= 0 && newIndex < calculationSteps.length) {
+                currentStepIndex = newIndex;
+                viewingHistory = true;
+                
+                const step = calculationSteps[currentStepIndex];
+                updateDisplay(step.result);
+                document.getElementById('liveOutput').textContent = step.expression;
+                
+                updateStepIndicator();
+            }
+        }
+        
+        /**
+         * Clear step history
+         */
+        function clearStepHistory() {
+            calculationSteps = [];
+            currentStepIndex = -1;
+            viewingHistory = false;
+            updateStepIndicator();
+        }
+
+        function updateLiveOutput() {
+            // Don't update live output if viewing history
+            if (viewingHistory) return;
+            
+            const liveOutputElement = document.getElementById('liveOutput');
+            
+            // In immediate execution mode, show the pending calculation
+            if (pendingOperator && currentOperand !== '' && currentOperand !== '-') {
+                const preview = applyOperation(accumulator, pendingOperator, currentOperand);
+                if (!preview.error && preview.value !== 'Error') {
+                    const formatted = formatForDisplay(preview.value);
+                    const formattedWithCommas = addIndianCommas(formatted);
+                    
+                    // Only show if different from current display
+                    if (formatted !== currentOperand) {
+                        liveOutputElement.textContent = '= ' + formattedWithCommas;
+                        return;
+                    }
+                }
+            }
+            
+            liveOutputElement.textContent = '';
+        }
+
+        // ============================================
+        // INPUT FUNCTIONS
+        // ============================================
+        
+        /**
+         * Add a digit to the current operand
+         */
+        function addNumber(num) {
+            // Exit history viewing mode when user starts typing
+            viewingHistory = false;
+            
+            // If starting fresh, clear the current operand
+            if (startNewOperand) {
+                currentOperand = '';
+                startNewOperand = false;
+                lastEqualsPressed = false;
+            }
+            
+            // Handle leading zeros
+            if (currentOperand === '0' && num !== '.') {
+                currentOperand = num;
+            } else if (currentOperand === '-0' && num !== '.') {
+                currentOperand = '-' + num;
+            } else {
+                // Limit input length to prevent overflow
+                if (currentOperand.replace('-', '').replace('.', '').length < 15) {
+                    currentOperand += num;
+                }
+            }
+            
+            updateDisplay(currentOperand);
+            updateLiveOutput();
+        }
+
+        /**
+         * Add an operator - this triggers immediate execution
+         * of any pending operation
+         */
+        function addOperator(op) {
+            // Exit history viewing mode
+            viewingHistory = false;
+            lastEqualsPressed = false;
+            
+            // Handle case where we're starting with just an operator
+            if (currentOperand === '' && pendingOperator === null && accumulator === '0') {
+                // Allow negative numbers at start
+                if (op === '-') {
+                    currentOperand = '-';
+                    startNewOperand = false;
+                    updateDisplay(currentOperand);
+                    return;
+                }
+                // Other operators do nothing when there's no number
+                return;
+            }
+            
+            // Handle negative number entry after an operator
+            if (currentOperand === '' && startNewOperand && op === '-') {
+                currentOperand = '-';
+                startNewOperand = false;
+                updateDisplay(currentOperand);
+                return;
+            }
+            
+            // If we only have a minus sign and user presses another operator, ignore
+            if (currentOperand === '-') {
+                if (op !== '-') {
+                    currentOperand = '';
+                    pendingOperator = op;
+                    startNewOperand = true;
+                }
+                return;
+            }
+            
+            // Execute any pending operation IMMEDIATELY
+            if (currentOperand !== '' && currentOperand !== '-') {
+                // Build step expression before executing
+                let stepExpr;
+                let displayValue;
+                
+                if (pendingOperator !== null) {
+                    stepExpr = formatForDisplay(accumulator) + ' ' + pendingOperator + ' ' + currentOperand;
+                } else {
+                    stepExpr = currentOperand;
+                }
+                
+                const result = executePendingOperation();
+                
+                if (result.error) {
+                    updateDisplay(result.error);
+                    clearAll();
+                    return;
+                }
+                
+                // Record the step (operator pressed = new step)
+                if (pendingOperator !== null) {
+                    displayValue = formatForDisplay(accumulator);
+                    addCalculationStep(stepExpr, displayValue);
+                } else {
+                    // First operand - use original string to avoid floating point display issues
+                    displayValue = currentOperand;
+                    accumulatorStr = currentOperand;
+                }
+                
+                // Update expression history
+                if (expressionHistory === '') {
+                    expressionHistory = currentOperand;
+                } else {
+                    expressionHistory += ' ' + currentOperand;
+                }
+                expressionHistory += ' ' + op;
+                
+                // Show the intermediate result WITH the operator
+                updateDisplay(displayValue + ' ' + op);
+            } else if (pendingOperator !== null) {
+                // Just changing operator without new operand - show accumulator with new operator
+                updateDisplay(accumulatorStr + ' ' + op);
+            }
+            
+            // Set the new pending operator
+            pendingOperator = op;
+            startNewOperand = true;
+            
+            // Store for repeat operations
+            lastOperator = op;
+            lastOperand = currentOperand || '0';
+            lastOperandStr = currentOperand || '0';
+            
+            // Clear current operand for next input
+            currentOperand = '';
+            
+            document.getElementById('liveOutput').textContent = '';
+        }
+
+        /**
+         * Add a decimal point
+         */
+        function addDecimal() {
+            if (startNewOperand) {
+                currentOperand = '0';
+                startNewOperand = false;
+                lastEqualsPressed = false;
+            }
+            
+            // Only add decimal if there isn't one already
+            if (!currentOperand.includes('.')) {
+                if (currentOperand === '' || currentOperand === '-') {
+                    currentOperand += '0.';
+                } else {
+                    currentOperand += '.';
+                }
+            }
+            
+            updateDisplay(currentOperand);
+            updateLiveOutput();
+        }
+
+        /**
+         * Calculate percentage based on running total
+         * In shop calculator mode:
+         * - 100 + 10% means 100 + (10% of 100) = 110
+         * - 100 × 10% means 100 × 0.1 = 10
+         * - 100 - 10% means 100 - (10% of 100) = 90
+         */
+        function addPercent() {
+            if (currentOperand === '' || currentOperand === '-') return;
+            
+            lastEqualsPressed = false;
+            
+            let percentResult;
+            
+            if (pendingOperator === '+' || pendingOperator === '-') {
+                // For addition/subtraction: percent of accumulator
+                // 100 + 10% = 100 + (10% of 100) = 100 + 10 = 110
+                const percent = new Decimal(currentOperand).divide(new Decimal('100'));
+                if (percent.error) {
+                    percentResult = '0';
+                } else {
+                    const percentValue = new Decimal(accumulator).multiply(percent.value);
+                    percentResult = percentValue.toString();
+                }
+            } else {
+                // For multiplication/division or no operator: just divide by 100
+                // 50% = 0.5
+                const percent = new Decimal(currentOperand).divide(new Decimal('100'));
+                percentResult = percent.error ? '0' : percent.value.toString();
+            }
+            
+            currentOperand = formatForDisplay(percentResult);
+            updateDisplay(currentOperand);
+            updateLiveOutput();
+        }
+
+        /**
+         * Square Root function
+         * Calculates the square root of the current operand or accumulator
+         * Works identically in both algebraic and immediate execution modes
+         * (since √ is a unary operation, precedence doesn't affect it)
+         */
+        function addSquareRoot() {
+            let valueToRoot;
+            let valueStr;
+            let wasViewingAccumulator = false;
+            
+            // Determine which value to take square root of
+            if (currentOperand !== '' && currentOperand !== '-') {
+                valueStr = currentOperand;
+                valueToRoot = parseFloat(currentOperand);
+            } else if (accumulator !== '0') {
+                valueStr = accumulator;
+                valueToRoot = parseFloat(accumulator);
+                wasViewingAccumulator = true;
+            } else {
+                // If display shows 0, take sqrt of 0
+                valueStr = '0';
+                valueToRoot = 0;
+            }
+            
+            // Check for negative numbers (no real square root)
+            if (valueToRoot < 0) {
+                updateDisplay('Error');
+                setTimeout(() => {
+                    if (wasViewingAccumulator && pendingOperator) {
+                        // Restore display with operator
+                        updateDisplay(formatForDisplay(accumulator) + ' ' + pendingOperator);
+                    } else {
+                        updateDisplay('0');
+                    }
+                }, 1000);
+                return;
+            }
+            
+            // Calculate square root (use JS Math.sqrt but format the result properly)
+            const sqrtResult = Math.sqrt(valueToRoot);
+            const formattedResult = formatForDisplay(sqrtResult.toString());
+            
+            // Record step
+            addCalculationStep('√' + formatForDisplay(valueStr), formattedResult);
+            
+            // Update state based on context
+            if (wasViewingAccumulator) {
+                // Apply to accumulator, keep pending operator
+                accumulator = formattedResult;
+                accumulatorStr = formattedResult;
+                currentOperand = '';
+                if (pendingOperator) {
+                    updateDisplay(formattedResult + ' ' + pendingOperator);
+                } else {
+                    updateDisplay(formattedResult);
+                    currentOperand = formattedResult;
+                    startNewOperand = true;
+                }
+            } else {
+                // Replace current operand with its square root
+                currentOperand = formattedResult;
+                updateDisplay(currentOperand);
+            }
+            
+            updateLiveOutput();
+        }
+        
+        /**
+         * Legacy function - redirects to square root
+         */
+        function addParenthesis() {
+            addSquareRoot();
+        }
+
+        /**
+         * Delete the last character
+         */
+        function backspace() {
+            if (lastEqualsPressed) {
+                // After equals, backspace starts fresh
+                return;
+            }
+            
+            if (currentOperand.length > 0) {
+                currentOperand = currentOperand.slice(0, -1);
+                
+                if (currentOperand === '' || currentOperand === '-') {
+                    if (pendingOperator !== null) {
+                        updateDisplay(formatForDisplay(accumulator));
+                    } else {
+                        updateDisplay('0');
+                    }
+                } else {
+                    updateDisplay(currentOperand);
+                }
+                
+                updateLiveOutput();
+            }
+        }
+
+        /**
+         * Clear all - reset calculator to initial state
+         */
+        function clearAll() {
+            accumulator = '0';
+            accumulatorStr = '0';
+            currentOperand = '';
+            pendingOperator = null;
+            startNewOperand = true;
+            lastEqualsPressed = false;
+            lastOperator = null;
+            lastOperand = '0';
+            lastOperandStr = '0';
+            expressionHistory = '';
+            
+            // Clear step history
+            clearStepHistory();
+            
+            updateDisplay('0');
+            document.getElementById('liveOutput').textContent = '';
+        }
+
+        /**
+         * Calculate and show final result
+         */
+        function calculate() {
+            // Exit history viewing mode
+            viewingHistory = false;
+            
+            // Handle repeated equals (chain calculation)
+            if (lastEqualsPressed && lastOperator !== null) {
+                // Repeat the last operation
+                const result = applyOperation(accumulator, lastOperator, lastOperand);
+                
+                if (result.error) {
+                    updateDisplay(result.error);
+                    clearAll();
+                    return;
+                }
+                
+                const oldAccumulator = accumulator;
+                accumulator = result.value;
+                accumulatorStr = formatForDisplay(accumulator);
+                currentOperand = accumulatorStr;
+                
+                // Save to history
+                const historyExpr = formatForDisplay(oldAccumulator) + ' ' + lastOperator + ' ' + formatForDisplay(lastOperand);
+                saveToHistory(historyExpr, currentOperand);
+                
+                // Add calculation step
+                addCalculationStep(historyExpr, currentOperand);
+                
+                updateDisplay(currentOperand);
+                startNewOperand = true;
+                document.getElementById('liveOutput').textContent = '';
+                return;
+            }
+            
+            // Normal calculation
+            if (currentOperand === '' && pendingOperator === null) {
+                // Nothing to calculate
+                return;
+            }
+            
+            // If we have a current operand, use it; otherwise use accumulator
+            let historyExpr = expressionHistory;
+            
+            if (currentOperand !== '' && currentOperand !== '-') {
+                // Store for repeat operations
+                lastOperand = currentOperand;
+                lastOperandStr = currentOperand;
+                lastOperator = pendingOperator;
+                
+                if (pendingOperator !== null) {
+                    const result = executePendingOperation();
+                    
+                    if (result.error) {
+                        updateDisplay(result.error);
+                        clearAll();
+                        return;
+                    }
+                    
+                    historyExpr += ' ' + currentOperand;
+                } else {
+                    accumulator = currentOperand;
+                    accumulatorStr = currentOperand;
+                    historyExpr = currentOperand;
+                }
+            }
+            
+            // Format and display result
+            const formattedResult = formatForDisplay(accumulator);
+            accumulatorStr = formattedResult;
+            
+            // Save to history
+            if (historyExpr === '') {
+                historyExpr = formattedResult;
+            }
+            saveToHistory(historyExpr, formattedResult);
+            
+            // Add calculation step
+            addCalculationStep(historyExpr, formattedResult);
+            
+            // Update state
+            updateDisplay(formattedResult);
+            currentOperand = formattedResult;
+            pendingOperator = null;
+            startNewOperand = true;
+            lastEqualsPressed = true;
+            expressionHistory = '';
+            
+            document.getElementById('liveOutput').textContent = '';
+        }
+
+        // ============================================
+        // KEYBOARD SUPPORT
+        // ============================================
+        
+        document.addEventListener('keydown', function (event) {
+            const key = event.key;
+
+            if (key >= '0' && key <= '9') {
+                addNumber(key);
+            } else if (key === '+') {
+                addOperator('+');
+            } else if (key === '-') {
+                addOperator('-');
+            } else if (key === '*') {
+                addOperator('×');
+            } else if (key === '/') {
+                event.preventDefault();
+                addOperator('÷');
+            } else if (key === '.') {
+                addDecimal();
+            } else if (key === '%') {
+                addPercent();
+            } else if (key === 'Enter' || key === '=') {
+                event.preventDefault();
+                calculate();
+            } else if (key === 'Backspace') {
+                backspace();
+            } else if (key === 'Escape') {
+                const sidebar = document.getElementById('historySidebar');
+                if (sidebar.classList.contains('open')) {
+                    closeHistory();
+                } else {
+                    clearAll();
+                }
+            }
+            // Note: Parentheses keys are intentionally not handled
+            // as immediate execution calculators don't support them
+        });
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        
+        initTheme();
+        updateStepIndicator();
+        
+        // Log calculator type for debugging
+        console.log('Immediate Execution Calculator loaded');
+        console.log('Logic: Left-to-right evaluation, no operator precedence');
+        console.log('Example: 2 + 3 × 4 = 20 (not 14)');
+    </script>
+</body>
+
+</html>
