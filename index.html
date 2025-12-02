@@ -16,6 +16,10 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Calculator</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="icon" href="icon.png" sizes="292x292" type="image/png">
+    <link rel="apple-touch-icon" href="icon.png" sizes="292x292">
     <style>
         /* @font-face {
             font-family: 'poppinsRegular';
@@ -2312,6 +2316,14 @@
         console.log('Logic: Left-to-right evaluation, no operator precedence');
         console.log('Example: 2 + 3 × 4 = 20 (not 14)');
     </script>
+        <script>
+            // Register service worker for PWA support if available
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js', { scope: './' })
+                .then(() => console.log('Service worker registered from Calc_Immediate.html'))
+                .catch((err) => console.warn('SW registration failed:', err));
+            }
+        </script>
 </body>
 
 </html>
